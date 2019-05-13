@@ -112,11 +112,11 @@ public class ProductController {
 
 	@PostMapping(value = "/Produits")
 	public ResponseEntity<Void> ajouterProduit(@Valid @RequestBody Product product) {
-		Product product1 = productDao.save(product);
 		if (product == null) {
 			return ResponseEntity.noContent().build();
 		}
 		if(product.getPrix() == 0) throw new ProduitGratuitException("Le prix du produit doit être strictement supérieure à 0 voyons!");
+		Product product1 = productDao.save(product);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{:id}").buildAndExpand(product1.getId())
 				.toUri();
 		return ResponseEntity.created(location).build();
