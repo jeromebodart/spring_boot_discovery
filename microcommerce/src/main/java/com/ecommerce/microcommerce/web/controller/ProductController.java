@@ -1,12 +1,16 @@
 package com.ecommerce.microcommerce.web.controller;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +24,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.ecommerce.microcommerce.dao.ProductDao;
 import com.ecommerce.microcommerce.exceptions.ProduitIntrouvableException;
 import com.ecommerce.microcommerce.model.Product;
+import com.ecommerce.microcommerce.model.ProduitUser;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,29 +38,53 @@ public class ProductController {
 
 	@Autowired
 	private ProductDao productDao;
+	SimpleBeanPropertyFilter monFiltre;
+//	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
+//	public List<Product> listeProduits() {
+//		monFiltre =
+//				SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+//		return productDao.findAll();
+//	}
 
 	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
-	public List<Product> listeProduits() {
-		return productDao.findAll();
+	public MappingJacksonValue listeProduitsfiltre() {
+		Iterable<Product> produits = productDao.findAll();
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat", "marge");
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
 	}
-	// public MappingJacksonValue listeProduits() {
-	// List<Product> produits = productDao.findAll();
-	// SimpleBeanPropertyFilter monFiltre =
-	// SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
-	// FilterProvider listeDeNosFiltres = new
-	// SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
-	// MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
-	// produitsFiltres.setFilters(listeDeNosFiltres);
-	// return produitsFiltres;
-	// }
 	
+
+
+	@GetMapping(value = "/AdminProduits") 
+	public HashMap<String, Integer> calculerMargeProduit() { 
+		HashMap<String, Integer>  product_marges = new HashMap<String, Integer>();  
+		ArrayList<Product> products = (ArrayList<Product>) productDao.findAll();
+		ArrayList<ProduitUser> productsusers = new ArrayList<>();
+		for (Product product : products) {
+			productsusers.add((new ProduitUser(product)));
+		}
+		for (int i=0; i < productsusers.size(); i++) { 
+			product_marges.put(productsusers.get(i).toString(), products.get(i).getMarge()); 
+		}  
+		return product_marges; 
+	} 
+
 	///Produits/{id}
 	@ApiOperation(value = "Récupère un produit selon son ID")
 	@GetMapping(value = "/Produits/{id}")
-	public Product afficherUnProduit(@PathVariable int id) throws ProduitIntrouvableException {
+	public MappingJacksonValue afficherUnProduit(@PathVariable int id) throws ProduitIntrouvableException {
 		Product product = productDao.findById(id);
 		if(product == null) throw new ProduitIntrouvableException("Le produit avec l'id "+ id+" n'existe pas");
-		return product;
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat", "marge");
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(product);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
 	}
 
 	@PostMapping(value = "/Produits")
@@ -77,9 +109,9 @@ public class ProductController {
 		return productDao.findByNomLike("%" + recherche + "%");
 	}
 
-	
-	  @GetMapping(value = "/test/produits/{prixLimit}") public List<Product>
-	  testeDeRequetes(@PathVariable int prixLimit) { return
-	  productDao.findByPrixGreaterThan(prixLimit); }
-	 
+
+	@GetMapping(value = "/test/produits/{prixLimit}") public List<Product>
+	testeDeRequetes(@PathVariable int prixLimit) { return
+			productDao.findByPrixGreaterThan(prixLimit); }
+
 }
