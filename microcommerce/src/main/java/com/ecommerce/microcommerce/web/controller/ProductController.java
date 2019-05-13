@@ -47,7 +47,7 @@ public class ProductController {
 	//				SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
 	//		return productDao.findAll();
 	//	}
-	
+
 	@GetMapping(value = "/AdminLesProduits") 
 	public MappingJacksonValue listeProduits() {
 		Iterable<Product> produits = productDao.findAll();
@@ -73,7 +73,7 @@ public class ProductController {
 	@RequestMapping(value = "/ProduitsOrdonnnerParNom", method = RequestMethod.GET)
 	public MappingJacksonValue trierProduitsParOrdreAlphabetique () {
 		List<Product> produits = productDao.findAllByOrderByNomAsc();
-		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("marge");
 		FilterProvider listeDeNosFiltres = new
 				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
 		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
@@ -128,13 +128,27 @@ public class ProductController {
 	}
 
 	@GetMapping(value = "/test2/produits/{recherche}")
-	public List<Product> testeDeRequetes(@PathVariable String recherche) {
-		return productDao.findByNomLike("%" + recherche + "%");
+	public MappingJacksonValue testeDeRequetes(@PathVariable String recherche) {
+		Iterable<Product> produits = productDao.findByNomLike("%" + recherche + "%");
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat", "marge");
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
 	}
+	
 
 
-	@GetMapping(value = "/test/produits/{prixLimit}") public List<Product>
-	testeDeRequetes(@PathVariable int prixLimit) { return
-			productDao.findByPrixGreaterThan(prixLimit); }
+	@GetMapping(value = "/test/produits/{prixLimit}") 
+	public MappingJacksonValue testeDeRequetes(@PathVariable int prixLimit) { 
+		Iterable<Product> produits = productDao.findByPrixGreaterThan(prixLimit);
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat", "marge");
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
+	}
 
 }

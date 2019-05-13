@@ -30,6 +30,5 @@ public interface ProductDao extends JpaRepository<Product, Integer>{
 
 	List<Product> findAllByOrderByNomAsc();
 
-	
 	 
 }
