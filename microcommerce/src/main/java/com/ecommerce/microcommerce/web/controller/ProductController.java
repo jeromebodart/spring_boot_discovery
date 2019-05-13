@@ -39,12 +39,12 @@ public class ProductController {
 	@Autowired
 	private ProductDao productDao;
 	SimpleBeanPropertyFilter monFiltre;
-//	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
-//	public List<Product> listeProduits() {
-//		monFiltre =
-//				SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
-//		return productDao.findAll();
-//	}
+	//	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
+	//	public List<Product> listeProduits() {
+	//		monFiltre =
+	//				SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+	//		return productDao.findAll();
+	//	}
 
 	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
 	public MappingJacksonValue listeProduitsfiltre() {
@@ -56,7 +56,17 @@ public class ProductController {
 		produitsFiltres.setFilters(listeDeNosFiltres);
 		return produitsFiltres;
 	}
-	
+
+	@RequestMapping(value = "/ProduitsOrdonnnerParNom", method = RequestMethod.GET)
+	public MappingJacksonValue trierProduitsParOrdreAlphabetique () {
+		List<Product> produits = productDao.findAllByOrderByNomAsc();
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
+	}
 
 
 	@GetMapping(value = "/AdminProduits") 
