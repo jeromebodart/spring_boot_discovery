@@ -3,6 +3,7 @@ package com.ecommerce.microcommerce.web.controller;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.ecommerce.microcommerce.dao.ProductDao;
+import com.ecommerce.microcommerce.exceptions.ProduitGratuitException;
 import com.ecommerce.microcommerce.exceptions.ProduitIntrouvableException;
 import com.ecommerce.microcommerce.model.Product;
 import com.ecommerce.microcommerce.model.ProduitUser;
@@ -45,6 +47,17 @@ public class ProductController {
 	//				SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
 	//		return productDao.findAll();
 	//	}
+	
+	@GetMapping(value = "/AdminLesProduits") 
+	public MappingJacksonValue listeProduits() {
+		Iterable<Product> produits = productDao.findAll();
+		monFiltre = SimpleBeanPropertyFilter.serializeAllExcept(Collections.<String>emptySet());
+		FilterProvider listeDeNosFiltres = new
+				SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+		MappingJacksonValue produitsFiltres = new MappingJacksonValue(produits);
+		produitsFiltres.setFilters(listeDeNosFiltres);
+		return produitsFiltres;
+	} 
 
 	@RequestMapping(value = "/Produits", method = RequestMethod.GET)
 	public MappingJacksonValue listeProduitsfiltre() {
@@ -103,7 +116,7 @@ public class ProductController {
 		if (product == null) {
 			return ResponseEntity.noContent().build();
 		}
-
+		if(product.getPrix() == 0) throw new ProduitGratuitException("Le prix du produit doit être strictement supérieure à 0 voyons!");
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{:id}").buildAndExpand(product1.getId())
 				.toUri();
 		return ResponseEntity.created(location).build();

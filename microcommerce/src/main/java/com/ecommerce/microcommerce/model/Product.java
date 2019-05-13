@@ -5,6 +5,9 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -20,24 +23,39 @@ public class Product {
 	@GeneratedValue
 	private int id;
 	@Length(min = 3, max = 20, message = "ici votre message")
+	@NotEmpty
 	private String nom;
+	@Min(0)
 	private int prix;
 
 	// a ne pas afficher
+	@Min(0)
 	private int prixAchat;
 	private int marge;
 
 	public Product() {
 		super();
 	}
-
-	public Product(int id, String nom, int prix, int prixAchat, int marge) {
+	
+	public Product(int id, @Length(min = 3, max = 20, message = "ici votre message") @NotEmpty String nom,
+			@Min(0) int prix, @Min(0) int prixAchat) {
 		super();
 		this.id = id;
 		this.nom = nom;
 		this.prix = prix;
 		this.prixAchat = prixAchat;
-		this.marge = prix-prixAchat;
+		this.marge = prix - prixAchat;
+	}
+
+	
+	public Product(int id, @Length(min = 3, max = 20, message = "ici votre message") @NotEmpty String nom,
+			@Min(0) int prix, @Min(0) int prixAchat, int marge) {
+		super();
+		this.id = id;
+		this.nom = nom;
+		this.prix = prix;
+		this.prixAchat = prixAchat;
+		this.marge = marge;
 	}
 
 	public int getId() {
